@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title>Petition</title>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        {{#if error}}
+        <div class="error">Oops!</div>
+        {{/if}}
+        <h1>Petition - jr</h1>
+
+        <form method="POST">
+            <input name="first">
+            <input name="last">
+            <input type="hidden" id='signature' name='signature'>
+            <button>sign!</button>
+        </form>
+        <canvas id="canvas" width="500" height="200"></canvas>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+        <script src="script.js"></script>
+    </body>
+</html>

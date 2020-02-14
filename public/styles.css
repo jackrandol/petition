@@ -1,0 +1,8 @@
+* {
+    margin: 0px;
+    background-color: lightblue;
+}
+
+#canvas {
+    border: solid 2px black;
+}
