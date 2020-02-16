@@ -79,8 +79,8 @@ app.post("/petition", (req, res) => {
         .catch(error => {
             console.log("error in catch:", error);
             res.render("petition", {
-                layout: null,
-                message: "Oops there was an error. Try Again"
+                layout: 'main',
+                message: "Oops there was an error. Please make sure to complete all input fields."
             });
         });
 });

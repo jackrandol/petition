@@ -1,6 +1,6 @@
 * {
     margin: 0px;
-    background-color: wheat;
+    /* background-color: wheat; */
     font-family: 'Muli', sans-serif;
     font-weight: 200;
 
@@ -8,4 +8,30 @@
 
 #canvas {
     border: solid 2px black;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    margin: 20px;
+}
+
+input {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+button {
+    margin-top: 5px;
+}
+
+.error {
+    color: red;
+    font-weight: 400;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    width: 500px;
 }
