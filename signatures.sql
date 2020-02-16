@@ -8,6 +8,8 @@ CREATE TABLE signatures (
     signature TEXT NOT NULL CHECK (signature != '')
 );
 
+
+
 -- INSERT INTO signatures (first, last, signature) VALUES ('jack', 'randol', 'sig');
 
 -- CREATE TABLE signatures (

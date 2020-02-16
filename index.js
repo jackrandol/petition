@@ -49,7 +49,7 @@ app.get("/petition", (req, res) => {
         console.log("session obj in petition route:", req.session);
 
         res.render("petition", {
-            layout: null
+            layout: 'main'
         });
     }
 });
@@ -87,8 +87,16 @@ app.post("/petition", (req, res) => {
 
 
 app.get('/thanks', (req, res) => {
-    res.render('thanks', {
-        layout: null,
+    console.log("req.session.sigId:", req.session.sigId);
+    var signatureImage;
+    db.getSignature(req.session.sigId).then(response =>{
+        signatureImage = response.rows[0].signature;
+        // console.log('signature from promise:', signatureImage);
+        res.render('thanks', {
+            layout: 'main',
+            signatureImage
+        });
+
     });
 });
 
@@ -99,11 +107,14 @@ app.post('/thanks', (req, res) => {
 
 app.get("/signers", (req, res) => {
 
+
     db.getSigners().then(response => {
+
+
         var signers = response.rows;
         res.render('signers', {
-            layout: null,
-            signers
+            layout: 'main',
+            signers,
         });
     });
     //here's where there should be a db.query to get the cookie with the user id and

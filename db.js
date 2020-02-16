@@ -7,7 +7,7 @@ const db = spicedPg(`postgres://postgres:postgres@localhost:5432/signatures`);
 //postgres will only do 10 connections to the database at once, like with each js file
 //it forms a connection for each file
 //spicepg manages all the connections
-// const addSigners = 
+// const addSigners =
 
 exports.addSigners = function(first, last, signature) {
 
@@ -30,6 +30,12 @@ exports.addSigners = function(first, last, signature) {
 exports.getSigners = function() {
     return db.query(
         `SELECT first, last FROM signatures;`
+    );
+};
+
+exports.getSignature = function(sigId) {
+    return db.query(
+        `SELECT signature FROM signatures WHERE id = ${sigId}`
     );
 };
 
