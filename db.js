@@ -2,29 +2,36 @@ const spicedPg = require("spiced-pg");
 // const secrets = require('./secrets');
 // you can leave the // after postgres: if you want
 
-const db = spicedPg(`postgres://postgres:postgres@localhost:5432/cities`);
+const db = spicedPg(`postgres://postgres:postgres@localhost:5432/signatures`);
 
 //postgres will only do 10 connections to the database at once, like with each js file
 //it forms a connection for each file
 //spicepg manages all the connections
+// const addSigners = 
 
-const addSigners = exports.addSigners = function(first, last, signature) {
+exports.addSigners = function(first, last, signature) {
+
+    console.log('data inserted into DB!');
+
+
     return db.query(
         `INSERT INTO signatures (first, last, signature)
-        VALUES ($1, $2, $3)`,
+        VALUES ($1, $2, $3)
+        RETURNING id `,
+        //when we use returning it will give us back the id of the user that
+        //was just inserted
         [first, last, signature]
     );
 };
 
-INSERT INTO signatures (first, last, signature) VALUES ('jack', 'randol', 'sig');
+// INSERT INTO signatures (first, last, signature) VALUES ('jack', 'randol', 'sig');
 
 //this should get the first and last names of all signers
 exports.getSigners = function() {
     return db.query(
-        `SELECT`
+        `SELECT first, last FROM signatures;`
     );
 };
-
 
 ////don't put a variable for denver in the query above, people can input code instead of just
 //a city variable and they will actually cause something to happen in your code
