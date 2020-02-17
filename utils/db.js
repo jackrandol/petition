@@ -9,18 +9,42 @@ const db = spicedPg(`postgres://postgres:postgres@localhost:5432/signatures`);
 //spicepg manages all the connections
 // const addSigners =
 
-exports.addSigners = function(first, last, signature) {
+exports.addUser = function(first, last, email, password) {
+    console.log('data inserted into users DB table!');
+
+    return db.query(
+        `INSERT INTO users (first, last, email, password)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id, first, last, email, password`,
+        [first, last, email, password]
+    );
+};
+
+exports.addSigners = function(signature, user_id) {
 
     console.log('data inserted into DB!');
 
-
     return db.query(
-        `INSERT INTO signatures (first, last, signature)
-        VALUES ($1, $2, $3)
-        RETURNING id `,
+        `INSERT INTO signatures (signature, user_id)
+        VALUES ($1, $2)
+        RETURNING id`,
         //when we use returning it will give us back the id of the user that
         //was just inserted
-        [first, last, signature]
+        [signature, user_id]
+    );
+};
+
+exports.getPassword = function(inputEmail) {
+    return db.query(
+        `SELECT password, id FROM users WHERE email = $1`,
+        [inputEmail]
+    );
+};
+
+exports.checkUserSig = function(userId) {
+    return db.query(
+        `SELECT signature FROM signatures WHERE user_id = $1`,
+        [userId]
     );
 };
 
@@ -29,13 +53,14 @@ exports.addSigners = function(first, last, signature) {
 //this should get the first and last names of all signers
 exports.getSigners = function() {
     return db.query(
-        `SELECT first, last FROM signatures;`
+        `SELECT first, last FROM users;`
     );
 };
 
 exports.getSignature = function(sigId) {
     return db.query(
-        `SELECT signature FROM signatures WHERE id = ${sigId}`
+        `SELECT signature FROM signatures WHERE user_id = $1`,
+        [sigId]
     );
 };
 

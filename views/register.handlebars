@@ -1,0 +1,13 @@
+{{ registrationErrorMessage }}
+
+<h1>Sign up today to help our cause!</h1>
+<form method="POST">
+    <input name="first" placeholder="first name">
+    <input name="last" placeholder="last name">
+    <input name='email' placeholder="email address">
+    <input type="password" name='password' placeholder="password">
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+    <button id=register>register</button>
+</form>
+
+<p>If you are already a member, please <a href="./login">log in</a></p>

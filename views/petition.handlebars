@@ -1,10 +1,10 @@
-        <h1>Petition - jr</h1>
+
 
         <p class='error'>{{message}}</p>
 
         <form method="POST">
-            <input name="first" placeholder="first name">
-            <input name="last" placeholder="last name">
+            <!-- <input name="first" placeholder="first name">
+            <input name="last" placeholder="last name"> -->
             <input type="hidden" id='signature' name='signature'>
             <input type="hidden" name="_csrf" value="{{csrfToken}}">
             <canvas id="canvas" width="500" height="150"></canvas>
