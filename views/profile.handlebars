@@ -1,7 +1,9 @@
+{{ profileErrorMessage }}
+
 <form method="POST">
-    <input name="age" placeholder="first name">
-    <input name="city" placeholder="last name">
+    <input name="age" placeholder="age">
+    <input name="city" placeholder="city">
     <input name="url" placeholder="website">
-    <input type="hidden" name="_csrf" value="{{csrfToken}}">
     <button class="continue">continue</button>
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
 </form>

@@ -1,14 +1,15 @@
 DROP TABLE IF EXISTS signatures;
+DROP TABLE IF EXISTS users CASCADE ;
+DROP TABLE IF EXISTS userProfiles;
 
 
 CREATE TABLE signatures (
     id SERIAL PRIMARY KEY,
     signature TEXT NOT NULL CHECK (signature != ''),
-    user_id INTEGER NOT NULL REFERENCES users(id),
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-DROP TABLE IF EXISTS users;
 
 CREATE TABLE users(
       id SERIAL PRIMARY KEY,
@@ -19,16 +20,18 @@ CREATE TABLE users(
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 
-CREATE TABLE user_profiles(
+
+CREATE TABLE userProfiles(
     id SERIAL PRIMARY KEY,
-    age INT,
-    city VARCHAR,
-    url VARCHAR,
-    user_id NOT NULL UNIQUE REFERENCES users(id)
-    -- the references can be annoying here because of referential integrity
+    age INTEGER,
+    city VARCHAR(255),
+    url VARCHAR(255),
+    user_id INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE
 );
 
--- to deal with capitalization of cities you can use this line  
+-- the references can be annoying here because of referential integrity
+
+-- to deal with capitalization of cities you can use this line
 -- WHERE LOWER(city) =  LOWER($1);
 
 -- INSERT INTO signatures (first, last, signature) VALUES ('jack', 'randol', 'sig');

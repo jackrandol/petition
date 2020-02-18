@@ -41,7 +41,15 @@ exports.getPassword = function(inputEmail) {
     );
 };
 
-//also need to get the signature ID here 
+//also need to get the signature ID here
+
+exports.addProfileInfo = function(age, city, url, userId) {
+    return db.query(
+        `INSERT INTO userProfiles (age, city, url, user_id)
+        VALUES ($1, $2, $3, $4)`,
+        [age, city, url, userId]
+    );
+};
 
 exports.checkUserSig = function(userId) {
     return db.query(
@@ -55,7 +63,12 @@ exports.checkUserSig = function(userId) {
 //this should get the first and last names of all signers
 exports.getSigners = function() {
     return db.query(
-        `SELECT first, last FROM users;`
+        `SELECT signatures.signature AS signature, users.first AS first, users.last AS last, userProfiles.url AS url, userProfiles.age AS age
+        FROM signatures
+        LEFT JOIN users
+        ON users.id = signatures.user_id
+        LEFT JOIN userProfiles
+        ON signatures.user_id = userProfiles.user_id`
     );
 };
 

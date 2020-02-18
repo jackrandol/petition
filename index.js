@@ -68,7 +68,7 @@ app.post("/register", (req, res) => {
                 req.session.first = response.rows[0].first;
                 req.session.last = response.rows[0].last;
                 req.session.email = response.rows[0].email;
-                res.redirect("/petition");
+                res.redirect("/profile");
             }).catch(error => {
                 console.log("error in catch:", error);
                 res.render("register", {
@@ -87,17 +87,32 @@ app.get("/profile", (req, res) => {
 });
 
 app.post("/profile", (req, res) => {
-    var userUrl = req.body.url;
-
+    console.log('req.session:', req.session);
+    let userUrl = req.body.url;
     if (!req.body.city && !req.body.url && !req.body.age){
         res.redirect('/petition');
     }
     if (userUrl.startsWith('http://') || userUrl.startsWith('https://') || userUrl.startsWith('//')) {
+        userUrl = req.body.url;
         console.log('url is good');
     } else {
         userUrl = null;
     }
-    
+
+    db.addProfileInfo(req.body.age, req.body.city, userUrl, req.session.userId).then(() => {
+        console.log('data entered into userProfiles');
+        res.redirect('/petition');
+    }).catch(error => {
+        console.log("error in catch:", error);
+        res.render("profile", {
+            layout: "main",
+            profileErrorMessage:
+                "Oops there was an error with your profile. Maybe you have already entered profile information or used a url that doesn't begin with http://, https:// or //."
+        });
+
+    });
+
+
 });
 
 app.get("/login", (req, res) => {
@@ -235,7 +250,9 @@ app.post("/thanks", (req, res) => {
 
 app.get("/signers", (req, res) => {
     db.getSigners().then(response => {
+        console.log("signers query response.rows:", response.rows);
         var signers = response.rows;
+
         res.render("signers", {
             layout: "main",
             signers
