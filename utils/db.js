@@ -63,7 +63,7 @@ exports.checkUserSig = function(userId) {
 //this should get the first and last names of all signers
 exports.getSigners = function() {
     return db.query(
-        `SELECT signatures.signature AS signature, users.first AS first, users.last AS last, userProfiles.url AS url, userProfiles.age AS age
+        `SELECT signatures.signature AS signature, users.first AS first, users.last AS last, userProfiles.url AS url, userProfiles.age AS age, userProfiles.city AS city
         FROM signatures
         LEFT JOIN users
         ON users.id = signatures.user_id
