@@ -19,7 +19,17 @@ CREATE TABLE users(
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 
+CREATE TABLE user_profiles(
+    id SERIAL PRIMARY KEY,
+    age INT,
+    city VARCHAR,
+    url VARCHAR,
+    user_id NOT NULL UNIQUE REFERENCES users(id)
+    -- the references can be annoying here because of referential integrity
+);
 
+-- to deal with capitalization of cities you can use this line  
+-- WHERE LOWER(city) =  LOWER($1);
 
 -- INSERT INTO signatures (first, last, signature) VALUES ('jack', 'randol', 'sig');
 

@@ -1,7 +1,8 @@
 
         <h1>Thanks for signing petition</h1>
+        {{thanksErrorMessage}}
         <img id='base64image' src={{signatureImage}}>
         <form method="POST">
-            <input type="hidden" name="_csrf" value="{{csrfToken}}">
             <button id=signerButton>see who else has signed!</button>
+            <input type="hidden" name="_csrf" value="{{csrfToken}}">
         </form>

@@ -68,10 +68,6 @@ app.post("/register", (req, res) => {
                 req.session.first = response.rows[0].first;
                 req.session.last = response.rows[0].last;
                 req.session.email = response.rows[0].email;
-                console.log(
-                    "req.session after signer id cookie set",
-                    req.session
-                );
                 res.redirect("/petition");
             }).catch(error => {
                 console.log("error in catch:", error);
@@ -82,6 +78,26 @@ app.post("/register", (req, res) => {
                 });
             });
     });
+});
+
+app.get("/profile", (req, res) => {
+    res.render("profile", {
+        layout: "main"
+    });
+});
+
+app.post("/profile", (req, res) => {
+    var userUrl = req.body.url;
+
+    if (!req.body.city && !req.body.url && !req.body.age){
+        res.redirect('/petition');
+    }
+    if (userUrl.startsWith('http://') || userUrl.startsWith('https://') || userUrl.startsWith('//')) {
+        console.log('url is good');
+    } else {
+        userUrl = null;
+    }
+    
 });
 
 app.get("/login", (req, res) => {
@@ -98,13 +114,12 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
     //use compare, two args, 1st is password from the user input and second is the hashedPW from the database
     //if these pw match ompare returns true, otherwise it returns false
-    console.log("post to login was made");
-    console.log("req.body.email:", req.body.email);
+
     //this is all hardcoded, we need to actually get whats in the database table
     const userPWInput = req.body.password;
     ///get the password from db.js
     db.getPassword(req.body.email).then(results => {
-        console.log("results from getpassword:", results);
+        // console.log("results from getpassword:", results);
 
         compare(userPWInput, results.rows[0].password)
             .then(matchValue => {
@@ -112,15 +127,16 @@ app.post("/login", (req, res) => {
 
                 if (matchValue == true) {
                     req.session.userId = results.rows[0].id;
+                    console.log("req.session.userId after true match:", req.session.userId);
                     db.checkUserSig(results.rows[0].id).then(sigResponse => {
                         console.log("sigResponse:", sigResponse);
-                        if(sigResponse.rowCount == 0) {
+                        if(!sigResponse.rows[0].signature) {
                             res.redirect('/petition');
-                        } else if (sigResponse.rowCount == 1) {
+                        } else if (sigResponse.rows[0].signature) {
                             res.redirect('/thanks');
                         }
                     });
-                    console.log('req.session.userId after cookie:', req.session.userId);
+                    // console.log('req.session.userId after cookie:', req.session.userId);
 
                 } else {
                     res.render('login', {
@@ -193,7 +209,7 @@ app.post("/petition", (req, res) => {
 });
 
 app.get("/thanks", (req, res) => {
-    // console.log("req.session.userId:", req.session.userId);
+    console.log("req.session in get route thanks", req.session);
     var signatureImage;
     db.getSignature(req.session.userId).then(response => {
         console.log("req.session:", req.session);
@@ -205,6 +221,11 @@ app.get("/thanks", (req, res) => {
         });
     }).catch(error => {
         console.log('error in catch:', error);
+        res.render("thanks", {
+            layout: "main",
+            thanksErrorMessage:
+                "oops there was an error here"
+        });
     });
 });
 
@@ -220,13 +241,13 @@ app.get("/signers", (req, res) => {
             signers
         });
     });
+    //select signatures from signatures table and then join users with first and last name
+    //we also want to display age city and url
     //here's where there should be a db.query to get the cookie with the user id and
     //render it back on the page
 });
 
 app.listen(8080, () => console.log("petition running . . ."));
-
-// for adding signers
-// db.addSigner(req.body.first, req.body.last, req.body.signature)
-//     .then()
-//     .catch()
+// new get route for profile
+//new template for profile
+//check url before inserting into database

@@ -41,6 +41,8 @@ exports.getPassword = function(inputEmail) {
     );
 };
 
+//also need to get the signature ID here 
+
 exports.checkUserSig = function(userId) {
     return db.query(
         `SELECT signature FROM signatures WHERE user_id = $1`,
