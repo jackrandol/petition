@@ -40,6 +40,12 @@ app.use(function(req, res, next) {
 
 ///Bcrypt stuff- registering users
 
+//make app.get('/') and redirect to petition
+
+app.get("/", (req, res) => {
+    res.redirect("/petition");
+});
+
 app.get("/register", (req, res) => {
     if (req.session.userId) {
         res.redirect("/petition");
@@ -69,7 +75,8 @@ app.post("/register", (req, res) => {
                 req.session.last = response.rows[0].last;
                 req.session.email = response.rows[0].email;
                 res.redirect("/profile");
-            }).catch(error => {
+            })
+            .catch(error => {
                 console.log("error in catch:", error);
                 res.render("register", {
                     layout: "main",
@@ -89,42 +96,114 @@ app.get("/profile", (req, res) => {
 app.post("/profile", (req, res) => {
     // console.log('req.session:', req.session);
     let userUrl = req.body.url;
-    if (!req.body.city && !req.body.url && !req.body.age){
-        res.redirect('/petition');
+    if (!req.body.city && !req.body.url && !req.body.age) {
+        res.redirect("/petition");
     }
-    if (userUrl.startsWith('http://') || userUrl.startsWith('https://') || userUrl.startsWith('//')) {
+    if (
+        userUrl.startsWith("http://") ||
+        userUrl.startsWith("https://") ||
+        userUrl.startsWith("//")
+    ) {
         userUrl = req.body.url;
         // console.log('url is good');
     } else {
         userUrl = null;
     }
 
-    db.addProfileInfo(req.body.age, req.body.city, userUrl, req.session.userId).then(() => {
-        // console.log('data entered into userProfiles');
-        res.redirect('/petition');
-    }).catch(error => {
-        console.log("error in catch:", error);
-        res.render("profile", {
-            layout: "main",
-            profileErrorMessage:
-                "Oops there was an error with your profile. Maybe you have already entered profile information or used a url that doesn't begin with http://, https:// or //."
+    db.addProfileInfo(req.body.age, req.body.city, userUrl, req.session.userId)
+        .then(() => {
+            // console.log('data entered into userProfiles');
+            res.redirect("/petition");
+        })
+        .catch(error => {
+            console.log("error in catch:", error);
+            res.render("profile", {
+                layout: "main",
+                profileErrorMessage:
+                    "Oops there was an error with your profile. Maybe you have already entered profile information or used a url that doesn't begin with http://, https:// or //."
+            });
         });
-
-    });
-
-
 });
 
 app.get("/profile/edit", (req, res) => {
-    res.render('profileEdit', {
-        layout: "main"
+
+    db.getUserInfo(req.session.userId).then(response => {
+        var userInfo = response.rows[0];
+        console.log("userInfo", userInfo);
+
+        res.render("profileEdit", {
+            layout: "main",
+            userInfo
+        });
     });
+});
+
+
+app.post("/profile/edit", (req, res) => {
+    console.log("req.body from profile edit:", req.body);
+    console.log("req.session.userId from profile edit:", req.session.userId);
+    let userUrl = req.body.url;
+
+    /// ********* we need to check the user url here as well *********//////
+    // if (
+    //     userUrl.startsWith("http://") ||
+    //     userUrl.startsWith("https://") ||
+    //     userUrl.startsWith("//")
+    // ) {
+    //     userUrl = req.body.url;
+    //     // console.log('url is good');
+    // } else {
+    //     userUrl = null;
+    // }
+
+    if (req.body.password) {
+        hash(req.body.password).then(hashedPassword => {
+
+            db.updateUsersWithPassword(
+                req.body.first,
+                req.body.last,
+                req.body.email,
+                hashedPassword,
+                req.session.userId
+            ).then(response => {
+                console.log('response from profile edit with PW:', response);
+                db.updateUserProfile(req.body.age, req.body.city, userUrl, req.session.userId);
+                console.log('userprofile updated with new PW');
+                res.redirect('/petition');
+            }).catch(error => {
+                console.log('error in catch from updateuserprofile w/oPw', error);
+                res.render("profileEdit", {
+                    layout: 'main',
+                    profileEditErrorMessage: 'There was an error updating your profile'
+                });
+            });
+        });
+    } else {
+        db.updateUsers(
+            req.body.first,
+            req.body.last,
+            req.body.email,
+            req.session.userId
+        ).then(response => {
+            console.log("response from profile edit w/o PW:", response);
+            db.updateUserProfile(req.body.age, req.body.city, userUrl, req.session.userId).then(() => {
+                console.log('userProfile was updated');
+                res.redirect('/petition');
+            }).catch(error => {
+                console.log('error in catch from updateuserprofile w/oPw', error);
+                res.render("profileEdit", {
+                    layout: 'main',
+                    profileEditErrorMessage: 'There was an error updating your profile'
+                });
+            });
+        });
+    }
 });
 
 app.get("/login", (req, res) => {
     const { userId } = req.session;
-    if(userId) {
-        res.redirect('/petition');
+    if (userId) {
+        res.redirect("/petition");
     } else {
         res.render("login", {
             layout: "main"
@@ -139,54 +218,59 @@ app.post("/login", (req, res) => {
     //this is all hardcoded, we need to actually get whats in the database table
     const userPWInput = req.body.password;
     ///get the password from db.js
-    db.getPassword(req.body.email).then(results => {
-        console.log("results from getpassword:", results);
-        console.log('userPWInput:', userPWInput);
+    db.getPassword(req.body.email)
+        .then(results => {
+            console.log("results from getpassword:", results);
+            console.log("userPWInput:", userPWInput);
 
-        compare(userPWInput, results.rows[0].password)
-            .then(matchValue => {
-                console.log("matchValue of compare:", matchValue);
+            compare(userPWInput, results.rows[0].password)
+                .then(matchValue => {
+                    console.log("matchValue of compare:", matchValue);
 
-                if (matchValue == true) {
-                    req.session.userId = results.rows[0].id;
-                    console.log("req.session.userId after true match:", req.session.userId);
-                    db.checkUserSig(results.rows[0].id).then(sigResponse => {
-                        console.log("sigResponse:", sigResponse);
-                        if(!sigResponse.rows[0].signature) {
-                            res.redirect('/petition');
-                        } else if (sigResponse.rows[0].signature) {
-                            res.redirect('/thanks');
-                        }
-                    });
-                    // console.log('req.session.userId after cookie:', req.session.userId);
-
-                } else {
-                    res.render('login', {
-                        layout: 'main',
+                    if (matchValue == true) {
+                        req.session.userId = results.rows[0].id;
+                        console.log(
+                            "req.session.userId after true match:",
+                            req.session.userId
+                        );
+                        db.checkUserSig(results.rows[0].id).then(
+                            sigResponse => {
+                                console.log("sigResponse:", sigResponse);
+                                if (sigResponse.rows == 0) {
+                                    res.redirect("/petition");
+                                } else if (sigResponse.rows == 1) {
+                                    res.redirect("/thanks");
+                                }
+                            }
+                        );
+                        // console.log('req.session.userId after cookie:', req.session.userId);
+                    } else {
+                        res.render("login", {
+                            layout: "main",
+                            loginErrorMessage:
+                                "The email or password you have entered are incorrect."
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.log("error in catch:", error);
+                    res.render("login", {
+                        layout: "main",
                         loginErrorMessage:
                             "The email or password you have entered are incorrect."
                     });
-
-                }
-            })
-            .catch(error => {
-                console.log("error in catch:", error);
-                res.render("login", {
-                    layout: "main",
-                    loginErrorMessage:
-                        "The email or password you have entered are incorrect."
                 });
+            //if the password matches, redirect to /petition, will want to set req.session.userId
+            //if PW does not match we will want to trigger or send an error msg
+        })
+        .catch(error => {
+            console.log("error in catch:", error);
+            res.render("login", {
+                layout: "main",
+                loginErrorMessage:
+                    "The email or password you have entered are incorrect."
             });
-        //if the password matches, redirect to /petition, will want to set req.session.userId
-        //if PW does not match we will want to trigger or send an error msg
-    }).catch(error => {
-        console.log("error in catch:", error);
-        res.render("login", {
-            layout: "main",
-            loginErrorMessage:
-                "The email or password you have entered are incorrect."
         });
-    });
 });
 
 app.get("/petition", (req, res) => {
@@ -240,22 +324,23 @@ app.post("/petition", (req, res) => {
 app.get("/thanks", (req, res) => {
     console.log("req.session in get route thanks", req.session);
     var signatureImage;
-    db.getSignature(req.session.userId).then(response => {
-        console.log("req.session:", req.session);
-        signatureImage = response.rows[0].signature;
-        // console.log('signature from promise:', signatureImage);
-        res.render("thanks", {
-            layout: "main",
-            signatureImage
+    db.getSignature(req.session.userId)
+        .then(response => {
+            console.log("req.session:", req.session);
+            signatureImage = response.rows[0].signature;
+            // console.log('signature from promise:', signatureImage);
+            res.render("thanks", {
+                layout: "main",
+                signatureImage
+            });
+        })
+        .catch(error => {
+            console.log("error in catch:", error);
+            res.render("thanks", {
+                layout: "main",
+                thanksErrorMessage: "oops there was an error here"
+            });
         });
-    }).catch(error => {
-        console.log('error in catch:', error);
-        res.render("thanks", {
-            layout: "main",
-            thanksErrorMessage:
-                "oops there was an error here"
-        });
-    });
 });
 
 app.post("/thanks", (req, res) => {
@@ -280,25 +365,28 @@ app.get("/signers", (req, res) => {
 
 app.get("/signers/:city", (req, res) => {
     var city = req.params.city;
-    console.log("req.params from /signers/:city", req.params.city );
-    db.getSignersByCity(city).then(response => {
-        console.log('response from getSignersByCity:', response);
-        var signers = response.rows;
-        res.render("signers", {
-            layout: "main",
-            signers
+    console.log("req.params from /signers/:city", req.params.city);
+    db.getSignersByCity(city)
+        .then(response => {
+            console.log("response from getSignersByCity:", response);
+            var signers = response.rows;
+            res.render("signers", {
+                layout: "main",
+                signers
+            });
+        })
+        .catch(error => {
+            console.log("error in catch:", error);
+            res.render("signers", {
+                layout: "main",
+                signersByCityErrorMessage: "oops there was an error here"
+            });
         });
-    }).catch(error => {
-        console.log('error in catch:', error);
-        res.render("signers", {
-            layout: "main",
-            signersByCityErrorMessage:
-                "oops there was an error here"
-        });
-    });
 });
 
-app.listen(process.env.PORT || 8080, () => console.log("petition running . . ."));
+app.listen(process.env.PORT || 8080, () =>
+    console.log("petition running . . .")
+);
 // new get route for profile
 //new template for profile
 //check url before inserting into database

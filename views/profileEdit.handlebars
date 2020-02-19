@@ -1,13 +1,15 @@
 <h1>Edit your profile here</h1>
-
+{{profileEditErrorMessage}}
+{{#userInfo}}
 <form method="POST">
-    <input name="first" placeholder="first name">
-    <input name="last" placeholder="last name">
-    <input name='email' placeholder="email address">
-    <input type="password" name='password' placeholder="password">
-    <input name="age" placeholder="age">
-    <input name="city" placeholder="city">
-    <input name="url" placeholder="website">
+    <input name="first" value={{first}}>
+    <input name="last" value={{last}}>
+    <input name='email' value={{email}}>
+    <input type="password" name='password' placeholder="new unique password">
+    <input name="age" value={{age}} placeholder="age">
+    <input name="city" value={{city}} placeholder="city">
+    <input name="url" value={{url}} placeholder="website">
     <button class="profileEdit">save changes</button>
+    {{/userInfo}}
     <input type="hidden" name="_csrf" value="{{csrfToken}}">
 </form>

@@ -93,6 +93,44 @@ exports.getSignature = function(sigId) {
     );
 };
 
+exports.getUserInfo = function(userId) {
+    return db.query(
+        `SELECT users.first AS first, users.last AS last, userProfiles.url AS url, userProfiles.age AS age, userProfiles.city AS city, users.email AS email
+        FROM users
+        LEFT JOIN userProfiles
+        ON userProfiles.user_id = users.id
+        WHERE users.id = $1`,
+        [userId]
+    );
+};
+
+exports.updateUsers = function(first, last, email, userId) {
+    return db.query(
+        `UPDATE users SET first = $1, last = $2, email = $3
+        WHERE id = $4`,
+        [first, last, email, userId]
+    );
+};
+
+exports.updateUsersWithPassword = function(first, last, email, hashedPassword, userId) {
+    return db.query(
+        `UPDATE users SET first = $1, last = $2, email = $3, password = $4
+        WHERE id = $5`,
+        [first, last, email, hashedPassword, userId]
+    );
+};
+
+exports.updateUserProfile = function(age, city, url, user_id) {
+    return db.query(
+        `INSERT INTO userProfiles (age, city, url, user_id)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (user_id) DO
+        UPDATE SET age = $1, city = $2, url = $3`,
+        [age || null, city || null, url || null, user_id]
+    );
+};
+
+
 ////don't put a variable for denver in the query above, people can input code instead of just
 //a city variable and they will actually cause something to happen in your code
 //solution is escape characters  to put all the info as a string, the dollar sign
