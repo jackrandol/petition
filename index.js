@@ -264,6 +264,26 @@ app.get("/signers", (req, res) => {
     //render it back on the page
 });
 
+app.get("/signers/:city", (req, res) => {
+    var city = req.params.city;
+    console.log("req.params from /signers/:city", req.params.city );
+    db.getSignersByCity(city).then(response => {
+        console.log('response from getSignersByCity:', response);
+        var signers = response.rows;
+        res.render("signers", {
+            layout: 'main',
+            signers
+        });
+    }).catch(error => {
+        console.log('error in catch:', error);
+        res.render("signers", {
+            layout: "main",
+            signersByCityErrorMessage:
+                "oops there was an error here"
+        });
+    });
+});
+
 app.listen(8080, () => console.log("petition running . . ."));
 // new get route for profile
 //new template for profile

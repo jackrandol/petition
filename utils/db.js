@@ -72,6 +72,20 @@ exports.getSigners = function() {
     );
 };
 
+exports.getSignersByCity = function(city) {
+    return db.query(
+        `SELECT signatures.signature AS signature, users.first AS first, users.last AS last, userProfiles.url AS url, userProfiles.age AS age, userProfiles.city AS city
+        FROM signatures
+        LEFT JOIN users
+        ON users.id = signatures.user_id
+        LEFT JOIN userProfiles
+        ON signatures.user_id = userProfiles.user_id
+        WHERE userProfiles.city = $1`,
+        [city]
+
+    );
+};
+
 exports.getSignature = function(sigId) {
     return db.query(
         `SELECT signature FROM signatures WHERE user_id = $1`,
