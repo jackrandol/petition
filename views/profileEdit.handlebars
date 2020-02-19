@@ -1,0 +1,13 @@
+<h1>Edit your profile here</h1>
+
+<form method="POST">
+    <input name="first" placeholder="first name">
+    <input name="last" placeholder="last name">
+    <input name='email' placeholder="email address">
+    <input type="password" name='password' placeholder="password">
+    <input name="age" placeholder="age">
+    <input name="city" placeholder="city">
+    <input name="url" placeholder="website">
+    <button class="profileEdit">save changes</button>
+    <input type="hidden" name="_csrf" value="{{csrfToken}}">
+</form>

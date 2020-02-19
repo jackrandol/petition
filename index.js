@@ -87,20 +87,20 @@ app.get("/profile", (req, res) => {
 });
 
 app.post("/profile", (req, res) => {
-    console.log('req.session:', req.session);
+    // console.log('req.session:', req.session);
     let userUrl = req.body.url;
     if (!req.body.city && !req.body.url && !req.body.age){
         res.redirect('/petition');
     }
     if (userUrl.startsWith('http://') || userUrl.startsWith('https://') || userUrl.startsWith('//')) {
         userUrl = req.body.url;
-        console.log('url is good');
+        // console.log('url is good');
     } else {
         userUrl = null;
     }
 
     db.addProfileInfo(req.body.age, req.body.city, userUrl, req.session.userId).then(() => {
-        console.log('data entered into userProfiles');
+        // console.log('data entered into userProfiles');
         res.redirect('/petition');
     }).catch(error => {
         console.log("error in catch:", error);
@@ -113,6 +113,12 @@ app.post("/profile", (req, res) => {
     });
 
 
+});
+
+app.get("/profile/edit", (req, res) => {
+    res.render('profileEdit', {
+        layout: "main"
+    });
 });
 
 app.get("/login", (req, res) => {
@@ -134,7 +140,8 @@ app.post("/login", (req, res) => {
     const userPWInput = req.body.password;
     ///get the password from db.js
     db.getPassword(req.body.email).then(results => {
-        // console.log("results from getpassword:", results);
+        console.log("results from getpassword:", results);
+        console.log('userPWInput:', userPWInput);
 
         compare(userPWInput, results.rows[0].password)
             .then(matchValue => {
@@ -172,6 +179,13 @@ app.post("/login", (req, res) => {
             });
         //if the password matches, redirect to /petition, will want to set req.session.userId
         //if PW does not match we will want to trigger or send an error msg
+    }).catch(error => {
+        console.log("error in catch:", error);
+        res.render("login", {
+            layout: "main",
+            loginErrorMessage:
+                "The email or password you have entered are incorrect."
+        });
     });
 });
 
@@ -271,7 +285,7 @@ app.get("/signers/:city", (req, res) => {
         console.log('response from getSignersByCity:', response);
         var signers = response.rows;
         res.render("signers", {
-            layout: 'main',
+            layout: "main",
             signers
         });
     }).catch(error => {
@@ -284,7 +298,7 @@ app.get("/signers/:city", (req, res) => {
     });
 });
 
-app.listen(8080, () => console.log("petition running . . ."));
+app.listen(process.env.PORT || 8080, () => console.log("petition running . . ."));
 // new get route for profile
 //new template for profile
 //check url before inserting into database

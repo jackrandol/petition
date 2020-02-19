@@ -2,7 +2,7 @@ const spicedPg = require("spiced-pg");
 // const secrets = require('./secrets');
 // you can leave the // after postgres: if you want
 
-const db = spicedPg(`postgres://postgres:postgres@localhost:5432/signatures`);
+const db = spicedPg(process.env.DATABASE_URL || `postgres://postgres:postgres@localhost:5432/signatures`);
 
 //postgres will only do 10 connections to the database at once, like with each js file
 //it forms a connection for each file
