@@ -1,5 +1,7 @@
 const express = require("express");
+
 const app = express();
+exports.app = app;
 const db = require("./utils/db.js");
 const hb = require("express-handlebars");
 // const cookieParser = require('cookie-parser');
@@ -11,6 +13,7 @@ const { hash, compare } = require("./utils/bc.js");
 const { requireSignature, requireNoSignatures } = require("./middleware");
 
 app.engine("handlebars", hb());
+
 app.set("view engine", "handlebars");
 //
 // app.use(express.static("./db"));
@@ -82,6 +85,21 @@ app.use((req, res, next) => {
 
 //make app.get('/') and redirect to petition
 
+function urlCheck(userInputUrl) {
+    var checkedUrl = userInputUrl;
+    if (
+        userInputUrl.startsWith("http://") ||
+        userInputUrl.startsWith("https://") ||
+        userInputUrl.startsWith("//")
+    ) {
+        checkedUrl = userInputUrl;
+        // console.log('url is good');
+    } else {
+        checkedUrl = null;
+    }
+    return checkedUrl;
+}
+
 app.get("/", (req, res) => {
     res.redirect("/petition");
 });
@@ -134,21 +152,11 @@ app.get("/profile", (req, res) => {
 });
 
 app.post("/profile", (req, res) => {
-    // console.log('req.session:', req.session);
-    let userUrl = req.body.url;
     if (!req.body.city && !req.body.url && !req.body.age) {
         res.redirect("/petition");
     }
-    if (
-        userUrl.startsWith("http://") ||
-        userUrl.startsWith("https://") ||
-        userUrl.startsWith("//")
-    ) {
-        userUrl = req.body.url;
-        // console.log('url is good');
-    } else {
-        userUrl = null;
-    }
+
+    let userUrl = urlCheck(req.body.url);
 
     db.addProfileInfo(req.body.age, req.body.city, userUrl, req.session.userId)
         .then(() => {
@@ -180,19 +188,7 @@ app.get("/profile/edit", (req, res) => {
 app.post("/profile/edit", (req, res) => {
     console.log("req.body from profile edit:", req.body);
     console.log("req.session.userId from profile edit:", req.session.userId);
-    let userUrl = req.body.url;
-
-    /// ********* we need to check the user url here as well *********//////
-    // if (
-    //     userUrl.startsWith("http://") ||
-    //     userUrl.startsWith("https://") ||
-    //     userUrl.startsWith("//")
-    // ) {
-    //     userUrl = req.body.url;
-    //     // console.log('url is good');
-    // } else {
-    //     userUrl = null;
-    // }
+    let checkedUrl = urlCheck(req.body.url);
 
     if (req.body.password) {
         hash(req.body.password).then(hashedPassword => {
@@ -211,7 +207,7 @@ app.post("/profile/edit", (req, res) => {
                     db.updateUserProfile(
                         req.body.age,
                         req.body.city,
-                        userUrl,
+                        checkedUrl,
                         req.session.userId
                     );
                     db.getUserInfo(req.session.userId).then(response => {
@@ -247,12 +243,20 @@ app.post("/profile/edit", (req, res) => {
             db.updateUserProfile(
                 req.body.age,
                 req.body.city,
-                userUrl,
+                checkedUrl,
                 req.session.userId
             )
                 .then(() => {
                     console.log("userProfile was updated");
-                    res.redirect("/petition");
+                    db.getUserInfo(req.session.userId).then(response => {
+                        var updatedUserInfo = response.rows[0];
+                        console.log("userInfo", updatedUserInfo);
+
+                        res.render("profileEdit", {
+                            layout: "main",
+                            updatedUserInfo
+                        });
+                    });
                 })
                 .catch(error => {
                     console.log(
@@ -404,7 +408,7 @@ app.get("/thanks", (req, res) => {
                     signatureImage
                 });
             } else if (!signatureImage) {
-                res.redirect('/petition');
+                res.redirect("/petition");
             }
         })
         .catch(error => {
@@ -423,7 +427,7 @@ app.post("/thanks", (req, res) => {
 app.post("/signature/delete", (req, res) => {
     db.deleteSignature(req.session.userId);
     req.session.sigId = null;
-    res.redirect('/petition');
+    res.redirect("/petition");
 });
 
 app.get("/signers", (req, res) => {
@@ -463,9 +467,30 @@ app.get("/signers/:city", (req, res) => {
         });
 });
 
-app.listen(process.env.PORT || 8080, () =>
-    console.log("petition running . . .")
-);
+///supertest/////
+
+// app.get("/welcome", (req, res) => {
+//     res.send('<h1>HIIIII</h1>');
+// });
+
+// app.post("/welcome", (req, res) => {
+//     req.session.submitted = true;
+//     res.redirect("/home");
+// });
+
+// app.get("/house", (req, res) => {
+//     if (!req.session.submitted) {
+//         return res.redirect("/welcome");
+//     }
+//     console.log('req.session in GET /house route:', req.session);
+//     res.send("<h1>house</h1>");
+// });
+
+if (require.main === module) {
+    app.listen(process.env.PORT || 8080, () =>
+        console.log("petition running . . .")
+    );
+}
 // new get route for profile
 //new template for profile
 //check url before inserting into database

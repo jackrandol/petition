@@ -67,3 +67,22 @@ req.session.signatureId = null;
 
 //deleting, we can only delete an entire row
 DELETE FROM actors WHERE last = 'Pitt'
+
+
+///////supertest///////
+
+app.get('/welcome', (req, res) => {
+    res.send('<h1>HIIIII</h1>');
+});
+
+app.post('/welcome', (req, res) => {
+    req.session.submitted = true;
+    res.redirect('/home');
+});
+
+app.get('/home', (req, res) => {
+    if (!req.session.submitted) {
+        return res.redirect('/welcome')
+    }
+    res.send("<h1>home</h1>");
+});
