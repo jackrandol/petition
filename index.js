@@ -8,6 +8,7 @@ const cookieSession = require("cookie-session");
 
 const csurf = require("csurf");
 const { hash, compare } = require("./utils/bc.js");
+const { requireSignature, requireNoSignatures } = require("./middleware");
 
 app.engine("handlebars", hb());
 app.set("view engine", "handlebars");
@@ -37,6 +38,45 @@ app.use(function(req, res, next) {
     ///this will put csrftoken in all of the routes
     next();
 });
+
+app.use((req, res, next) => {
+    if (!req.session.userId && req.url != "/register" && req.url != "/login") {
+        res.redirect("/register");
+    } else {
+        next();
+    }
+});
+
+// app.use('/auth', (req, res, next) => {
+//     //can also put a string there and then add to app.post/get (app.get('/auth/register')) for example
+// });
+
+// function requireLoggedOutUser(req, res, next) {
+//     if (req.session.userId) {
+//         return res.redirect('/petition');
+//     }
+//     res.sendStatus(200);
+// }
+///******you can add the function as an argument after the url route string*****
+
+//function requireNoSignatures(req, res, next) {
+// if(req.session.sigId)
+// }
+
+// function requireSignature (req, res, next) {
+//     if (req.session.sigId)
+// }
+// app.get("/register", requireLoggedOutUser, (req, res) => {
+//     if (req.session.userId) {
+//         res.redirect("/petition");
+//     } else {
+//         res.render("register", {
+//             layout: "main"
+//         });
+//     }
+// });
+
+///stubs are all the app.gets and app.posts
 
 ///Bcrypt stuff- registering users
 
@@ -126,7 +166,6 @@ app.post("/profile", (req, res) => {
 });
 
 app.get("/profile/edit", (req, res) => {
-
     db.getUserInfo(req.session.userId).then(response => {
         var userInfo = response.rows[0];
         console.log("userInfo", userInfo);
@@ -137,7 +176,6 @@ app.get("/profile/edit", (req, res) => {
         });
     });
 });
-
 
 app.post("/profile/edit", (req, res) => {
     console.log("req.body from profile edit:", req.body);
@@ -158,25 +196,45 @@ app.post("/profile/edit", (req, res) => {
 
     if (req.body.password) {
         hash(req.body.password).then(hashedPassword => {
-
             db.updateUsersWithPassword(
                 req.body.first,
                 req.body.last,
                 req.body.email,
                 hashedPassword,
                 req.session.userId
-            ).then(response => {
-                console.log('response from profile edit with PW:', response);
-                db.updateUserProfile(req.body.age, req.body.city, userUrl, req.session.userId);
-                console.log('userprofile updated with new PW');
-                res.redirect('/petition');
-            }).catch(error => {
-                console.log('error in catch from updateuserprofile w/oPw', error);
-                res.render("profileEdit", {
-                    layout: 'main',
-                    profileEditErrorMessage: 'There was an error updating your profile'
+            )
+                .then(response => {
+                    console.log(
+                        "response from profile edit with PW:",
+                        response
+                    );
+                    db.updateUserProfile(
+                        req.body.age,
+                        req.body.city,
+                        userUrl,
+                        req.session.userId
+                    );
+                    db.getUserInfo(req.session.userId).then(response => {
+                        var updatedUserInfo = response.rows[0];
+                        console.log("userInfo", updatedUserInfo);
+
+                        res.render("profileEdit", {
+                            layout: "main",
+                            updatedUserInfo
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.log(
+                        "error in catch from updateuserprofile w/oPw",
+                        error
+                    );
+                    res.render("profileEdit", {
+                        layout: "main",
+                        profileEditErrorMessage:
+                            "There was an error updating your profile"
+                    });
                 });
-            });
         });
     } else {
         db.updateUsers(
@@ -186,16 +244,27 @@ app.post("/profile/edit", (req, res) => {
             req.session.userId
         ).then(response => {
             console.log("response from profile edit w/o PW:", response);
-            db.updateUserProfile(req.body.age, req.body.city, userUrl, req.session.userId).then(() => {
-                console.log('userProfile was updated');
-                res.redirect('/petition');
-            }).catch(error => {
-                console.log('error in catch from updateuserprofile w/oPw', error);
-                res.render("profileEdit", {
-                    layout: 'main',
-                    profileEditErrorMessage: 'There was an error updating your profile'
+            db.updateUserProfile(
+                req.body.age,
+                req.body.city,
+                userUrl,
+                req.session.userId
+            )
+                .then(() => {
+                    console.log("userProfile was updated");
+                    res.redirect("/petition");
+                })
+                .catch(error => {
+                    console.log(
+                        "error in catch from updateuserprofile w/oPw",
+                        error
+                    );
+                    res.render("profileEdit", {
+                        layout: "main",
+                        profileEditErrorMessage:
+                            "There was an error updating your profile"
+                    });
                 });
-            });
         });
     }
 });
@@ -328,11 +397,15 @@ app.get("/thanks", (req, res) => {
         .then(response => {
             console.log("req.session:", req.session);
             signatureImage = response.rows[0].signature;
-            // console.log('signature from promise:', signatureImage);
-            res.render("thanks", {
-                layout: "main",
-                signatureImage
-            });
+            if (signatureImage) {
+                // console.log('signature from promise:', signatureImage);
+                res.render("thanks", {
+                    layout: "main",
+                    signatureImage
+                });
+            } else if (!signatureImage) {
+                res.redirect('/petition');
+            }
         })
         .catch(error => {
             console.log("error in catch:", error);
@@ -345,6 +418,12 @@ app.get("/thanks", (req, res) => {
 
 app.post("/thanks", (req, res) => {
     res.redirect("/signers");
+});
+
+app.post("/signature/delete", (req, res) => {
+    db.deleteSignature(req.session.userId);
+    req.session.sigId = null;
+    res.redirect('/petition');
 });
 
 app.get("/signers", (req, res) => {

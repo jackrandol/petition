@@ -1,7 +1,7 @@
-<h1>Edit your profile here</h1>
 {{profileEditErrorMessage}}
-{{#userInfo}}
 <form method="POST">
+    {{#userInfo}}
+    <h1>Edit your profile here</h1>
     <input name="first" value={{first}}>
     <input name="last" value={{last}}>
     <input name='email' value={{email}}>
@@ -13,3 +13,14 @@
     {{/userInfo}}
     <input type="hidden" name="_csrf" value="{{csrfToken}}">
 </form>
+
+{{#updatedUserInfo}}
+<p>Here is your updated user profile</p>
+<p>first name - {{first}}</p>
+<p>last name - {{last}}</p>
+<p>email address - {{email}}</p>
+<p>age - {{age}}</p>
+<p>city - {{city}}</p>
+<p>website - {{url}}</p>
+
+{{/updatedUserInfo}}

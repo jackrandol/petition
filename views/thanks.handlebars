@@ -6,3 +6,8 @@
             <button id=signerButton>see who else has signed!</button>
             <input type="hidden" name="_csrf" value="{{csrfToken}}">
         </form>
+        <form method="POST" action = "/signature/delete">
+            <button id=deleteSignature>delete my signature</button>
+            <input type='hidden' name="_csrf" value='{{csrfToken}}'>
+        </form>
+        <a href="/profile/edit">Edit your profile</a>

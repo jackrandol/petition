@@ -34,6 +34,14 @@ exports.addSigners = function(signature, user_id) {
     );
 };
 
+exports.deleteSignature = function(user_id) {
+    console.log('signature deleted!!!!!');
+    return db.query(
+        `DELETE FROM signatures WHERE user_id = $1`,
+        [user_id]
+    );
+};
+
 exports.getPassword = function(inputEmail) {
     return db.query(
         `SELECT password, id FROM users WHERE email = $1`,
