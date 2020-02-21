@@ -90,4 +90,6 @@ app.get('/home', (req, res) => {
 // ./src/redis-server to start redis server
 // ./_profile
 
-//we use daemonize on redis to keep it running in the background at all times  
+//we use daemonize on redis to keep it running in the background at all times
+
+git checkout -b ....means you are switching branches  
