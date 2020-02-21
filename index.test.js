@@ -3,6 +3,13 @@ const supertest = require("supertest");
 const { app } = require("./index");
 const cookieSession = require("cookie-session");
 
+test('GET /petition redirects logged out user to /register', () => {
+    return supertest(app).get('/petition').then(res => {
+        // console.log("res:", res);
+        expect(res.text).toBe('Found. Redirecting to /register');
+    });
+});
+
 // test('POST /welcome sets req.session.submitted to true', ( ) => {
 //     //if we want to check if the route is writing information, we give it an empty
 //     //cookie and then the route will add the properties from index.js
@@ -14,16 +21,16 @@ const cookieSession = require("cookie-session");
 //     });
 // });
 
-test("POST /welcome sets req.session.submitted to true", () => {
-    const cookie = {};
-    cookieSession.mockSessionOnce(cookie);
-    return supertest(app)
-        .post("/welcome")
-        .then(res => {
-            console.log('cookie res', res);
-            expect(cookie.submitted).toBe(true);
-        });
-});
+// test("POST /welcome sets req.session.submitted to true", () => {
+//     const cookie = {};
+//     cookieSession.mockSessionOnce(cookie);
+//     return supertest(app)
+//         .post("/welcome")
+//         .then(res => {
+//             console.log('cookie res', res);
+//             expect(cookie.submitted).toBe(true);
+//         });
+// });
 
 // test('GET /house sends a 200 status code response when there is a submitted cookie', () => {
 //     cookieSession.mockSessionOnce({

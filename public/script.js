@@ -1,9 +1,7 @@
 //CANVAS
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
-// var submit = $('#submit');
-// const firstName = $('input[name="first"]').val();
-// const lastName = $('input[name="last"]').val();
+
 let signature;
 
 canvas.addEventListener("mousedown", function(event) {

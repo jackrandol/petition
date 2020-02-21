@@ -10,7 +10,12 @@ const cookieSession = require("cookie-session");
 
 const csurf = require("csurf");
 const { hash, compare } = require("./utils/bc.js");
-const { requireSignature, requireNoSignatures } = require("./middleware");
+const {
+    requireLoggedOutUser,
+    requireLoggedInUser,
+    requireSignature,
+    requireNoSignature
+} = require("./middleware");
 
 app.engine("handlebars", hb());
 
@@ -49,36 +54,6 @@ app.use((req, res, next) => {
         next();
     }
 });
-
-// app.use('/auth', (req, res, next) => {
-//     //can also put a string there and then add to app.post/get (app.get('/auth/register')) for example
-// });
-
-// function requireLoggedOutUser(req, res, next) {
-//     if (req.session.userId) {
-//         return res.redirect('/petition');
-//     }
-//     res.sendStatus(200);
-// }
-///******you can add the function as an argument after the url route string*****
-
-//function requireNoSignatures(req, res, next) {
-// if(req.session.sigId)
-// }
-
-// function requireSignature (req, res, next) {
-//     if (req.session.sigId)
-// }
-// app.get("/register", requireLoggedOutUser, (req, res) => {
-//     if (req.session.userId) {
-//         res.redirect("/petition");
-//     } else {
-//         res.render("register", {
-//             layout: "main"
-//         });
-//     }
-// });
-
 ///stubs are all the app.gets and app.posts
 
 ///Bcrypt stuff- registering users
@@ -104,14 +79,10 @@ app.get("/", (req, res) => {
     res.redirect("/petition");
 });
 
-app.get("/register", (req, res) => {
-    if (req.session.userId) {
-        res.redirect("/petition");
-    } else {
-        res.render("register", {
-            layout: "main"
-        });
-    }
+app.get("/register", requireLoggedOutUser, (req, res) => {
+    res.render("register", {
+        layout: "main"
+    });
 });
 
 app.post("/register", (req, res) => {
@@ -145,7 +116,7 @@ app.post("/register", (req, res) => {
     });
 });
 
-app.get("/profile", (req, res) => {
+app.get("/profile", requireLoggedInUser, (req, res) => {
     res.render("profile", {
         layout: "main"
     });
@@ -173,7 +144,7 @@ app.post("/profile", (req, res) => {
         });
 });
 
-app.get("/profile/edit", (req, res) => {
+app.get("/profile/edit", requireLoggedInUser, (req, res) => {
     db.getUserInfo(req.session.userId).then(response => {
         var userInfo = response.rows[0];
         console.log("userInfo", userInfo);
@@ -273,29 +244,20 @@ app.post("/profile/edit", (req, res) => {
     }
 });
 
-app.get("/login", (req, res) => {
-    const { userId } = req.session;
-    if (userId) {
-        res.redirect("/petition");
-    } else {
-        res.render("login", {
-            layout: "main"
-        });
-    }
+app.get("/login", requireLoggedOutUser, (req, res) => {
+    res.render("login", {
+        layout: "main"
+    });
 });
 
 app.post("/login", (req, res) => {
     //use compare, two args, 1st is password from the user input and second is the hashedPW from the database
     //if these pw match ompare returns true, otherwise it returns false
-
-    //this is all hardcoded, we need to actually get whats in the database table
     const userPWInput = req.body.password;
     ///get the password from db.js
     db.getPassword(req.body.email)
         .then(results => {
-            console.log("results from getpassword:", results);
-            console.log("userPWInput:", userPWInput);
-
+            console.log("results.rows:", results.rows);
             compare(userPWInput, results.rows[0].password)
                 .then(matchValue => {
                     console.log("matchValue of compare:", matchValue);
@@ -309,9 +271,9 @@ app.post("/login", (req, res) => {
                         db.checkUserSig(results.rows[0].id).then(
                             sigResponse => {
                                 console.log("sigResponse:", sigResponse);
-                                if (sigResponse.rows == 0) {
+                                if (sigResponse.rowCount == 0) {
                                     res.redirect("/petition");
-                                } else if (sigResponse.rows == 1) {
+                                } else if (sigResponse.rowCount == 1) {
                                     res.redirect("/thanks");
                                 }
                             }
@@ -346,42 +308,19 @@ app.post("/login", (req, res) => {
         });
 });
 
-app.get("/petition", (req, res) => {
-    if (req.session.sigId) {
-        res.redirect("/thanks");
-    } else if (req.session.userId) {
-        res.render("petition", {
-            layout: "main"
-        });
-    } else {
-        // req.session starts off life as an empty object
-        //req.session = null to clear session
-        // console.log("req.session: ", req.session);
-        //lets add something to the cookies, adding key allspice and value <3
-        //req.session.allspice = "<3";
-        // console.log("session obj in petition route:", req.session);
-
-        res.redirect("/register");
-    }
+app.get("/petition", requireLoggedInUser, requireNoSignature, (req, res) => {
+    res.render("petition", {
+        layout: "main"
+    });
 });
-
-//redirect to /thanks if there's a cookie
-//do insert of submitted data into database
-// if there is an error, petition.handlebars is rendered with an error message
-// if there is no error
-// sets cookie to remember
-// redirects to thank you page
 
 app.post("/petition", (req, res) => {
     const { userId } = req.session;
-    // console.log("req.body.signature,", req.body.signature);
-
     db.addSigners(req.body.signature, userId)
         .then(response => {
             // console.log("req.session: ", req.session);
             req.session.sigId = response.rows[0].id;
             // console.log("req.session after signer id cookie set", req.session);
-
             res.redirect("/thanks");
         })
         .catch(error => {
@@ -394,22 +333,17 @@ app.post("/petition", (req, res) => {
         });
 });
 
-app.get("/thanks", (req, res) => {
-    console.log("req.session in get route thanks", req.session);
+app.get("/thanks", requireSignature, (req, res) => {
+    // console.log("req.session in get route thanks", req.session);
     var signatureImage;
     db.getSignature(req.session.userId)
         .then(response => {
-            console.log("req.session:", req.session);
+            // console.log("req.session:", req.session);
             signatureImage = response.rows[0].signature;
-            if (signatureImage) {
-                // console.log('signature from promise:', signatureImage);
-                res.render("thanks", {
-                    layout: "main",
-                    signatureImage
-                });
-            } else if (!signatureImage) {
-                res.redirect("/petition");
-            }
+            res.render("thanks", {
+                layout: "main",
+                signatureImage
+            });
         })
         .catch(error => {
             console.log("error in catch:", error);
@@ -430,11 +364,10 @@ app.post("/signature/delete", (req, res) => {
     res.redirect("/petition");
 });
 
-app.get("/signers", (req, res) => {
+app.get("/signers", requireSignature, (req, res) => {
     db.getSigners().then(response => {
-        console.log("signers query response.rows:", response.rows);
+        // console.log("signers query response.rows:", response.rows);
         var signers = response.rows;
-
         res.render("signers", {
             layout: "main",
             signers
@@ -446,12 +379,12 @@ app.get("/signers", (req, res) => {
     //render it back on the page
 });
 
-app.get("/signers/:city", (req, res) => {
+app.get("/signers/:city", requireSignature, (req, res) => {
     var city = req.params.city;
-    console.log("req.params from /signers/:city", req.params.city);
+    // console.log("req.params from /signers/:city", req.params.city);
     db.getSignersByCity(city)
         .then(response => {
-            console.log("response from getSignersByCity:", response);
+            // console.log("response from getSignersByCity:", response);
             var signers = response.rows;
             res.render("signers", {
                 layout: "main",
