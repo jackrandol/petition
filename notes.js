@@ -86,3 +86,8 @@ app.get('/home', (req, res) => {
     }
     res.send("<h1>home</h1>");
 });
+
+// ./src/redis-server to start redis server
+// ./_profile
+
+//we use daemonize on redis to keep it running in the background at all times  
