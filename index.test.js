@@ -10,6 +10,17 @@ test('GET /petition redirects logged out user to /register', () => {
     });
 });
 
+test('GET /register redirects logged in users to /petition', () => {
+    const cookie = {};
+    cookieSession.mockSessionOnce(cookie);
+
+    return supertest(app).get('/register').then(res => {
+        
+
+    });
+});
+
+
 // test('POST /welcome sets req.session.submitted to true', ( ) => {
 //     //if we want to check if the route is writing information, we give it an empty
 //     //cookie and then the route will add the properties from index.js

@@ -20,7 +20,8 @@ const {
 app.engine("handlebars", hb());
 
 app.set("view engine", "handlebars");
-//
+
+
 // app.use(express.static("./db"));
 app.use(express.static("./public"));
 // app.use(cookieParser());
@@ -270,11 +271,15 @@ app.post("/login", (req, res) => {
                         );
                         db.checkUserSig(results.rows[0].id).then(
                             sigResponse => {
-                                console.log("sigResponse:", sigResponse);
-                                if (sigResponse.rowCount == 0) {
+                                console.log("sigResponse.rows[0].signature:", sigResponse.rows[0].signature);
+                                if (!sigResponse.rows[0].signature) {
+                                    console.log('redirected to petition');
                                     res.redirect("/petition");
-                                } else if (sigResponse.rowCount == 1) {
+                                } else {
+                                    console.log('users sigId for cookie is:', sigResponse.rows[0].id);
+                                    req.session.sigId = sigResponse.rows[0].id;
                                     res.redirect("/thanks");
+                                    console.log('redirected to thanks');
                                 }
                             }
                         );

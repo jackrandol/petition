@@ -50,3 +50,9 @@ form {
     width: 500px;
 
 }
+
+#navbar {
+    align-self: flex-end;
+    display: flex;
+    flex-direction: row;
+}

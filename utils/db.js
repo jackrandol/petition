@@ -61,7 +61,7 @@ exports.addProfileInfo = function(age, city, url, userId) {
 
 exports.checkUserSig = function(userId) {
     return db.query(
-        `SELECT signature FROM signatures WHERE user_id = $1`,
+        `SELECT signature, id FROM signatures WHERE user_id = $1`,
         [userId]
     );
 };
