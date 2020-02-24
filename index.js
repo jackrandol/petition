@@ -24,6 +24,7 @@ app.set("view engine", "handlebars");
 
 // app.use(express.static("./db"));
 app.use(express.static("./public"));
+app.use(express.static('./public/assets'));
 // app.use(cookieParser());
 app.use(
     cookieSession({
@@ -119,7 +120,7 @@ app.post("/register", (req, res) => {
 
 app.get("/profile", requireLoggedInUser, (req, res) => {
     res.render("profile", {
-        layout: "main"
+        layout: "mainLoggedIn"
     });
 });
 
@@ -138,7 +139,7 @@ app.post("/profile", (req, res) => {
         .catch(error => {
             console.log("error in catch:", error);
             res.render("profile", {
-                layout: "main",
+                layout: "mainLoggedIn",
                 profileErrorMessage:
                     "Oops there was an error with your profile. Maybe you have already entered profile information or used a url that doesn't begin with http://, https:// or //."
             });
@@ -151,7 +152,7 @@ app.get("/profile/edit", requireLoggedInUser, (req, res) => {
         console.log("userInfo", userInfo);
 
         res.render("profileEdit", {
-            layout: "main",
+            layout: "mainLoggedIn",
             userInfo
         });
     });
@@ -187,7 +188,7 @@ app.post("/profile/edit", (req, res) => {
                         console.log("userInfo", updatedUserInfo);
 
                         res.render("profileEdit", {
-                            layout: "main",
+                            layout: "mainLoggedIn",
                             updatedUserInfo
                         });
                     });
@@ -198,7 +199,7 @@ app.post("/profile/edit", (req, res) => {
                         error
                     );
                     res.render("profileEdit", {
-                        layout: "main",
+                        layout: "mainLoggedIn",
                         profileEditErrorMessage:
                             "There was an error updating your profile"
                     });
@@ -225,7 +226,7 @@ app.post("/profile/edit", (req, res) => {
                         console.log("userInfo", updatedUserInfo);
 
                         res.render("profileEdit", {
-                            layout: "main",
+                            layout: "mainLoggedIn",
                             updatedUserInfo
                         });
                     });
@@ -236,7 +237,7 @@ app.post("/profile/edit", (req, res) => {
                         error
                     );
                     res.render("profileEdit", {
-                        layout: "main",
+                        layout: "mainLoggedIn",
                         profileEditErrorMessage:
                             "There was an error updating your profile"
                     });
@@ -265,14 +266,15 @@ app.post("/login", (req, res) => {
 
                     if (matchValue == true) {
                         req.session.userId = results.rows[0].id;
+
                         console.log(
                             "req.session.userId after true match:",
                             req.session.userId
                         );
                         db.checkUserSig(results.rows[0].id).then(
                             sigResponse => {
-                                console.log("sigResponse.rows[0].signature:", sigResponse.rows[0].signature);
-                                if (!sigResponse.rows[0].signature) {
+                                // console.log("sigResponse.rows[0].signature:", sigResponse.rows[0].signature);
+                                if (sigResponse.rowCount === 0) {
                                     console.log('redirected to petition');
                                     res.redirect("/petition");
                                 } else {
@@ -333,7 +335,7 @@ app.post("/petition", (req, res) => {
             res.render("petition", {
                 layout: "main",
                 message:
-                    "Oops there was an error. Please make sure to complete all input fields."
+                    "There was an error with your signature, are you sure you signed?"
             });
         });
 });
@@ -346,14 +348,14 @@ app.get("/thanks", requireSignature, (req, res) => {
             // console.log("req.session:", req.session);
             signatureImage = response.rows[0].signature;
             res.render("thanks", {
-                layout: "main",
+                layout: "mainLoggedIn",
                 signatureImage
             });
         })
         .catch(error => {
             console.log("error in catch:", error);
             res.render("thanks", {
-                layout: "main",
+                layout: "mainLoggedIn",
                 thanksErrorMessage: "oops there was an error here"
             });
         });
@@ -364,6 +366,7 @@ app.post("/thanks", (req, res) => {
 });
 
 app.post("/signature/delete", (req, res) => {
+    console.log('signature deleted!!!!!!!');
     db.deleteSignature(req.session.userId);
     req.session.sigId = null;
     res.redirect("/petition");
@@ -374,7 +377,7 @@ app.get("/signers", requireSignature, (req, res) => {
         // console.log("signers query response.rows:", response.rows);
         var signers = response.rows;
         res.render("signers", {
-            layout: "main",
+            layout: "mainLoggedIn",
             signers
         });
     });
@@ -392,17 +395,24 @@ app.get("/signers/:city", requireSignature, (req, res) => {
             // console.log("response from getSignersByCity:", response);
             var signers = response.rows;
             res.render("signers", {
-                layout: "main",
-                signers
+                layout: "mainLoggedIn",
+                signers,
+                city
             });
         })
         .catch(error => {
             console.log("error in catch:", error);
             res.render("signers", {
-                layout: "main",
+                layout: "mainLoggedIn",
                 signersByCityErrorMessage: "oops there was an error here"
             });
         });
+});
+
+app.post('/logout', (req, res) => {
+    req.session.sigId = null;
+    req.session.userId = null;
+    res.redirect('petition');
 });
 
 ///supertest/////

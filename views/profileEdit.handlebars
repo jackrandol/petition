@@ -1,9 +1,7 @@
-{{> navbar}}
-
-{{profileEditErrorMessage}}
-<form method="POST">
     {{#userInfo}}
+    <form class='formFields' method="POST">
     <h1>Edit your profile here</h1>
+    {{profileEditErrorMessage}}
     <input name="first" value={{first}}>
     <input name="last" value={{last}}>
     <input name='email' value={{email}}>
@@ -17,13 +15,14 @@
 </form>
 
 {{#updatedUserInfo}}
-<p>Here is your updated user profile</p>
-<p>first name - {{first}}</p>
-<p>last name - {{last}}</p>
-<p>email address - {{email}}</p>
-<p>age - {{age}}</p>
-<p>city - {{city}}</p>
-<p>website - {{url}}</p>
+<div class='formFields'>
+<h1>Here is your updated user profile</h1>
+<p class='userInfo'>first name - {{first}}</p>
+<p class='userInfo'>last name - {{last}}</p>
+<p class='userInfo'>email address - {{email}}</p>
+<p class='userInfo'>age - {{age}}</p>
+<p class='userInfo'>city - {{city}}</p>
+<p class='userInfo'>website - {{url}}</p>
 <a href="/">continue</a>
-
+</div>
 {{/updatedUserInfo}}

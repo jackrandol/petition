@@ -1,7 +1,7 @@
-{{ loginErrorMessage}}
 
-<h1>Please Log In here</h1>
-<form method="POST">
+<form class = 'formFields' method="POST">
+    <h1>Please Log In here</h1>
+    <p class='error'>{{ loginErrorMessage}}</p>
     <input name='email' placeholder="email address">
     <input type="password" name='password' placeholder="password">
     <input type="hidden" name="_csrf" value="{{csrfToken}}">

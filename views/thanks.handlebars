@@ -1,13 +1,15 @@
-{{> navbar}}
-        <h1>Thanks for signing petition</h1>
-        {{thanksErrorMessage}}
-        <img id='base64image' src={{signatureImage}}>
+<div class='formFields'>
         <form method="POST">
+            <h1>Thanks for signing petition</h1>
+            {{thanksErrorMessage}}
+            <img id='base64image' src={{signatureImage}}>
             <button id=signerButton>see who else has signed!</button>
             <input type="hidden" name="_csrf" value="{{csrfToken}}">
         </form>
         <form method="POST" action = "/signature/delete">
-            <button id=deleteSignature>delete my signature</button>
-            <input type='hidden' name="_csrf" value='{{csrfToken}}'>
+            <p>If you would like to unsign the petition you can do so by deleting your signature.  To do so <button id=deleteSignature> click here.</button></p>
+        </br>
+            <a href="/profile/edit">Edit your profile</a>
+            <input type="hidden" name="_csrf" value="{{csrfToken}}">
         </form>
-        <a href="/profile/edit">Edit your profile</a>
+    </div>

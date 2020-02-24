@@ -1,12 +1,11 @@
-{{> navbar}}
-    <p>By signing here your signature will be added to our petition and we will be one step closer to our goal!</p>
-        <p class='error'>{{message}}</p>
 
-        <form method="POST">
-            <!-- <input name="first" placeholder="first name">
-            <input name="last" placeholder="last name"> -->
+
+        <form class= 'formFields' method="POST">
+            <p>Sign your name in the field below by drawing with the cursor.</p>
+            <p class='error'>{{message}}</p>
+
             <input type="hidden" id='signature' name='signature'>
             <input type="hidden" name="_csrf" value="{{csrfToken}}">
-            <canvas id="canvas" width="500" height="150"></canvas>
-            <button id=submit>sign!</button>
+            <canvas id="canvas" width="360" height="120"></canvas>
+            <button id='signerButton'>sign!</button>
         </form>

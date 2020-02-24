@@ -1,8 +1,11 @@
 
-<div class=navbar>
-<a href="/">home</a>
-<a href="/profile/edit">profile edit</a>
-<a href="/about">about</a>
-</div>
+<div class='header'>
 
-<h1>Petition Jr</h1>
+<a class = 'navLink' href="/">Pickle-o Petition</a>
+<a class = 'navLink' href="/profile/edit">edit profile</a>
+<a class = 'navLink' href="/signers">supporters</a>
+<form class="logoutNav" method="POST" action = "/logout">
+    <button id=logoutLink>log out</button>
+    <input type='hidden' name="_csrf" value='{{csrfToken}}'>
+</form>
+</div>

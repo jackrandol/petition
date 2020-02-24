@@ -1,8 +1,7 @@
-{{> navbar}}
-
-{{ profileErrorMessage }}
-
-<form method="POST">
+<form class='formFields' method="POST">
+    <h1>Profile Information</h1>
+    <p>Help us understand who our pickle-o supporters are by entering some information about yourself.  These is optional but very much appreciated!</p>
+    <p class='error'>{{ profileErrorMessage }}</p>
     <input name="age" placeholder="age">
     <input name="city" placeholder="city">
     <input name="url" placeholder="website">

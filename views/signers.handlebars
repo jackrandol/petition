@@ -1,10 +1,12 @@
-{{> navbar}}
-        <h1>Signers</h1>
+<div class='formFields'>
 
+    <h1>Signers</h1>
+    {{#signers}}
 
         {{signersByCityErrorMessage}}
 
-        {{#signers}}
         <li><a href={{url}}> {{first}} {{last}} </a>- {{age}} - <a href= "/signers/{{city}}">{{city}}</a></li>
 
         {{/signers}}
+
+    </div>
