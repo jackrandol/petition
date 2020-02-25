@@ -21,10 +21,9 @@ app.engine("handlebars", hb());
 
 app.set("view engine", "handlebars");
 
-
 // app.use(express.static("./db"));
 app.use(express.static("./public"));
-app.use(express.static('./public/assets'));
+app.use(express.static("./public/assets"));
 // app.use(cookieParser());
 app.use(
     cookieSession({
@@ -88,34 +87,42 @@ app.get("/register", requireLoggedOutUser, (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-    hash(req.body.password).then(hashedPassword => {
-        //add to user table we create
-        // console.log("hashed PW from /register", hashedPassword);
-        //we need to store this in your DB table
-        //without the sendStatus the page would just load infinitely, message sent back to client side
-        //you will want to redirect and not send a success status
-        db.addUser(
-            req.body.first,
-            req.body.last,
-            req.body.email,
-            hashedPassword
-        )
-            .then(response => {
-                req.session.userId = response.rows[0].id;
-                req.session.first = response.rows[0].first;
-                req.session.last = response.rows[0].last;
-                req.session.email = response.rows[0].email;
-                res.redirect("/profile");
-            })
-            .catch(error => {
-                console.log("error in catch:", error);
-                res.render("register", {
-                    layout: "main",
-                    registrationErrorMessage:
-                        "Oops there was an error with your registration. Please make sure to complete all input fields."
+    if (req.body.password === "") {
+        return res.render("register", {
+            layout: "main",
+            registrationErrorMessage:
+                "Oops there was an error with your registration. Please make sure to complete all input fields."
+        });
+    } else {
+        hash(req.body.password).then(hashedPassword => {
+            //add to user table we create
+            // console.log("hashed PW from /register", hashedPassword);
+            //we need to store this in your DB table
+            //without the sendStatus the page would just load infinitely, message sent back to client side
+            //you will want to redirect and not send a success status
+            db.addUser(
+                req.body.first,
+                req.body.last,
+                req.body.email,
+                hashedPassword
+            )
+                .then(response => {
+                    req.session.userId = response.rows[0].id;
+                    req.session.first = response.rows[0].first;
+                    req.session.last = response.rows[0].last;
+                    req.session.email = response.rows[0].email;
+                    res.redirect("/profile");
+                })
+                .catch(error => {
+                    console.log("error in catch:", error);
+                    res.render("register", {
+                        layout: "main",
+                        registrationErrorMessage:
+                            "Oops there was an error with your registration. Please make sure to complete all input fields."
+                    });
                 });
-            });
-    });
+        });
+    }
 });
 
 app.get("/profile", requireLoggedInUser, (req, res) => {
@@ -126,7 +133,7 @@ app.get("/profile", requireLoggedInUser, (req, res) => {
 
 app.post("/profile", (req, res) => {
     if (!req.body.city && !req.body.url && !req.body.age) {
-        res.redirect("/petition");
+        return res.redirect("/petition");
     }
 
     let userUrl = urlCheck(req.body.url);
@@ -275,13 +282,16 @@ app.post("/login", (req, res) => {
                             sigResponse => {
                                 // console.log("sigResponse.rows[0].signature:", sigResponse.rows[0].signature);
                                 if (sigResponse.rowCount === 0) {
-                                    console.log('redirected to petition');
+                                    console.log("redirected to petition");
                                     res.redirect("/petition");
                                 } else {
-                                    console.log('users sigId for cookie is:', sigResponse.rows[0].id);
+                                    console.log(
+                                        "users sigId for cookie is:",
+                                        sigResponse.rows[0].id
+                                    );
                                     req.session.sigId = sigResponse.rows[0].id;
                                     res.redirect("/thanks");
-                                    console.log('redirected to thanks');
+                                    console.log("redirected to thanks");
                                 }
                             }
                         );
@@ -366,7 +376,7 @@ app.post("/thanks", (req, res) => {
 });
 
 app.post("/signature/delete", (req, res) => {
-    console.log('signature deleted!!!!!!!');
+    console.log("signature deleted!!!!!!!");
     db.deleteSignature(req.session.userId);
     req.session.sigId = null;
     res.redirect("/petition");
@@ -409,10 +419,10 @@ app.get("/signers/:city", requireSignature, (req, res) => {
         });
 });
 
-app.post('/logout', (req, res) => {
+app.post("/logout", (req, res) => {
     req.session.sigId = null;
     req.session.userId = null;
-    res.redirect('petition');
+    res.redirect("petition");
 });
 
 ///supertest/////

@@ -55,7 +55,7 @@ exports.addProfileInfo = function(age, city, url, userId) {
     return db.query(
         `INSERT INTO userProfiles (age, city, url, user_id)
         VALUES ($1, $2, $3, $4)`,
-        [age, city, url, userId]
+        [age || null, city || null, url || null , userId]
     );
 };
 
