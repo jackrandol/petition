@@ -69,7 +69,6 @@ function urlCheck(userInputUrl) {
         userInputUrl.startsWith("//")
     ) {
         checkedUrl = userInputUrl;
-        // console.log('url is good');
     } else {
         checkedUrl = null;
     }
@@ -95,11 +94,6 @@ app.post("/register", (req, res) => {
         });
     } else {
         hash(req.body.password).then(hashedPassword => {
-            //add to user table we create
-            // console.log("hashed PW from /register", hashedPassword);
-            //we need to store this in your DB table
-            //without the sendStatus the page would just load infinitely, message sent back to client side
-            //you will want to redirect and not send a success status
             db.addUser(
                 req.body.first,
                 req.body.last,
@@ -140,7 +134,6 @@ app.post("/profile", (req, res) => {
 
     db.addProfileInfo(req.body.age, req.body.city, userUrl, req.session.userId)
         .then(() => {
-            // console.log('data entered into userProfiles');
             res.redirect("/petition");
         })
         .catch(error => {
@@ -157,7 +150,6 @@ app.get("/profile/edit", requireLoggedInUser, (req, res) => {
     db.getUserInfo(req.session.userId).then(response => {
         var userInfo = response.rows[0];
         console.log("userInfo", userInfo);
-
         res.render("profileEdit", {
             layout: "mainLoggedIn",
             userInfo
@@ -260,10 +252,7 @@ app.get("/login", requireLoggedOutUser, (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-    //use compare, two args, 1st is password from the user input and second is the hashedPW from the database
-    //if these pw match ompare returns true, otherwise it returns false
     const userPWInput = req.body.password;
-    ///get the password from db.js
     db.getPassword(req.body.email)
         .then(results => {
             console.log("results.rows:", results.rows);
@@ -280,7 +269,6 @@ app.post("/login", (req, res) => {
                         );
                         db.checkUserSig(results.rows[0].id).then(
                             sigResponse => {
-                                // console.log("sigResponse.rows[0].signature:", sigResponse.rows[0].signature);
                                 if (sigResponse.rowCount === 0) {
                                     console.log("redirected to petition");
                                     res.redirect("/petition");
@@ -295,7 +283,6 @@ app.post("/login", (req, res) => {
                                 }
                             }
                         );
-                        // console.log('req.session.userId after cookie:', req.session.userId);
                     } else {
                         res.render("login", {
                             layout: "main",
@@ -312,8 +299,6 @@ app.post("/login", (req, res) => {
                             "The email or password you have entered are incorrect."
                     });
                 });
-            //if the password matches, redirect to /petition, will want to set req.session.userId
-            //if PW does not match we will want to trigger or send an error msg
         })
         .catch(error => {
             console.log("error in catch:", error);
@@ -335,9 +320,7 @@ app.post("/petition", (req, res) => {
     const { userId } = req.session;
     db.addSigners(req.body.signature, userId)
         .then(response => {
-            // console.log("req.session: ", req.session);
             req.session.sigId = response.rows[0].id;
-            // console.log("req.session after signer id cookie set", req.session);
             res.redirect("/thanks");
         })
         .catch(error => {
@@ -351,11 +334,9 @@ app.post("/petition", (req, res) => {
 });
 
 app.get("/thanks", requireSignature, (req, res) => {
-    // console.log("req.session in get route thanks", req.session);
     var signatureImage;
     db.getSignature(req.session.userId)
         .then(response => {
-            // console.log("req.session:", req.session);
             signatureImage = response.rows[0].signature;
             res.render("thanks", {
                 layout: "mainLoggedIn",
@@ -384,25 +365,18 @@ app.post("/signature/delete", (req, res) => {
 
 app.get("/signers", requireSignature, (req, res) => {
     db.getSigners().then(response => {
-        // console.log("signers query response.rows:", response.rows);
         var signers = response.rows;
         res.render("signers", {
             layout: "mainLoggedIn",
             signers
         });
     });
-    //select signatures from signatures table and then join users with first and last name
-    //we also want to display age city and url
-    //here's where there should be a db.query to get the cookie with the user id and
-    //render it back on the page
 });
 
 app.get("/signers/:city", requireSignature, (req, res) => {
     var city = req.params.city;
-    // console.log("req.params from /signers/:city", req.params.city);
     db.getSignersByCity(city)
         .then(response => {
-            // console.log("response from getSignersByCity:", response);
             var signers = response.rows;
             res.render("signers", {
                 layout: "mainLoggedIn",
@@ -425,30 +399,8 @@ app.post("/logout", (req, res) => {
     res.redirect("petition");
 });
 
-///supertest/////
-
-// app.get("/welcome", (req, res) => {
-//     res.send('<h1>HIIIII</h1>');
-// });
-
-// app.post("/welcome", (req, res) => {
-//     req.session.submitted = true;
-//     res.redirect("/home");
-// });
-
-// app.get("/house", (req, res) => {
-//     if (!req.session.submitted) {
-//         return res.redirect("/welcome");
-//     }
-//     console.log('req.session in GET /house route:', req.session);
-//     res.send("<h1>house</h1>");
-// });
-
 if (require.main === module) {
     app.listen(process.env.PORT || 8080, () =>
         console.log("petition running . . .")
     );
 }
-// new get route for profile
-//new template for profile
-//check url before inserting into database
