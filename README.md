@@ -4,7 +4,7 @@
 
 This site is a petition to legitamize the fictitious instrument, the pickle-o, by making it an official part of the Berliner Philharmonie.
 
-![](https://github.com/jackrandol/knitables-I/blob/master/register.gif "Image Modal Demo")
+![](https://github.com/jackrandol/petition/blob/master/registerGuide.gif "Image Modal Demo")
 
 ### Features
 
